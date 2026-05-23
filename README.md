@@ -2,7 +2,7 @@
 
 円形フィールドの中心にある太陽に向かって天体を投入し、同じ天体を3つ合体させて大きな惑星へと進化させるパズルゲームです。
 
-**▶ Play: https://hikaru8249.github.io/requirements/**
+**▶ Play: https://hikaru8249.github.io/PlanetMerge/**
 
 ---
 
