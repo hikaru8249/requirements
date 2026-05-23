@@ -198,7 +198,7 @@ export class Renderer {
       const def = CELESTIALS[cb.level];
       const { x, y } = cb.body.position;
       const scale = mergeScales.get(cb.body.id) ?? 1;
-      const r = def.radius * scale;
+      const r = def.radius * this.world.bodyScale * scale;
 
       ctx.save();
       ctx.translate(x, y);
@@ -479,8 +479,9 @@ export class Renderer {
     angle: number, nextLevel: number,
   ) {
     const def = CELESTIALS[nextLevel];
-    const ix = cx + (fr - def.radius - 4) * Math.cos(angle);
-    const iy = cy + (fr - def.radius - 4) * Math.sin(angle);
+    const scaledR = def.radius * this.world.bodyScale;
+    const ix = cx + (fr - scaledR - 4) * Math.cos(angle);
+    const iy = cy + (fr - scaledR - 4) * Math.sin(angle);
 
     // trajectory line — spawn位置からコア付近まで延長
     ctx.save();
@@ -508,7 +509,7 @@ export class Renderer {
     ctx.globalAlpha = 0.75;
     ctx.shadowBlur = 10;
     ctx.shadowColor = def.glowColor;
-    this.drawPlanet(ctx, def.radius, nextLevel);
+    this.drawPlanet(ctx, scaledR, nextLevel);
     ctx.restore();
 
     // リム上の「リリース可能」インジケータ — 緑の脈動ドット
@@ -568,9 +569,9 @@ export class Renderer {
     angle: number, nextLevel: number,
   ) {
     const def = CELESTIALS[nextLevel];
-    const ix = cx + (fr - def.radius - 4) * Math.cos(angle);
-    const iy = cy + (fr - def.radius - 4) * Math.sin(angle);
-    const r = def.radius;
+    const r = def.radius * this.world.bodyScale;
+    const ix = cx + (fr - r - 4) * Math.cos(angle);
+    const iy = cy + (fr - r - 4) * Math.sin(angle);
 
     // 薄暗い惑星プレビュー
     ctx.save();
@@ -611,7 +612,7 @@ export class Renderer {
     const def = CELESTIALS[level];
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const r = Math.min(def.radius, cx - 4);
+    const r = Math.min(def.radius * this.world.bodyScale, cx - 4);
 
     ctx.save();
     ctx.translate(cx, cy);

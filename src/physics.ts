@@ -15,18 +15,26 @@ export class PhysicsWorld {
   readonly fieldRadius: number;
   readonly centerX: number;
   readonly centerY: number;
-  readonly coreRadius = 28;
+  readonly coreRadius: number;
+  readonly bodyScale: number;
   private gravity = 0.0004;
   private wallBodies: Matter.Body[] = [];
 
-  constructor(fieldRadius: number, centerX: number, centerY: number) {
+  constructor(fieldRadius: number, centerX: number, centerY: number, bodyScale: number) {
     this.fieldRadius = fieldRadius;
     this.centerX = centerX;
     this.centerY = centerY;
+    this.bodyScale = bodyScale;
+    this.coreRadius = Math.round(28 * bodyScale);
 
     this.engine = Engine.create({ gravity: { x: 0, y: 0 } });
     this.buildWalls();
     this.buildCore();
+  }
+
+  // スケール済み半径を返すヘルパー
+  r(level: number): number {
+    return CELESTIALS[level].radius * this.bodyScale;
   }
 
   private buildWalls() {
@@ -70,8 +78,7 @@ export class PhysicsWorld {
   }
 
   addCelestial(x: number, y: number, level: number): CelestialBody {
-    const def = CELESTIALS[level];
-    const body = Bodies.circle(x, y, def.radius, {
+    const body = Bodies.circle(x, y, this.r(level), {
       restitution: 0.35,
       friction: 0.08,
       frictionAir: 0.01,
@@ -113,7 +120,7 @@ export class PhysicsWorld {
   isOutsideField(cb: CelestialBody): boolean {
     const dx = cb.body.position.x - this.centerX;
     const dy = cb.body.position.y - this.centerY;
-    return Math.sqrt(dx * dx + dy * dy) + CELESTIALS[cb.level].radius > this.fieldRadius - 2;
+    return Math.sqrt(dx * dx + dy * dy) + this.r(cb.level) > this.fieldRadius - 2;
   }
 
   getContactClusters(level: number): CelestialBody[][] {
@@ -143,12 +150,10 @@ export class PhysicsWorld {
   }
 
   hasLanded(cb: CelestialBody): boolean {
-    // コアへの接触チェック
     const dx = cb.body.position.x - this.centerX;
     const dy = cb.body.position.y - this.centerY;
     const distToCore = Math.sqrt(dx * dx + dy * dy);
-    if (distToCore <= this.coreRadius + CELESTIALS[cb.level].radius + 6) return true;
-    // 他の天体への接触チェック
+    if (distToCore <= this.coreRadius + this.r(cb.level) + 6) return true;
     for (const other of this.bodies) {
       if (other === cb) continue;
       if (this.areTouching(cb, other)) return true;
@@ -160,7 +165,6 @@ export class PhysicsWorld {
     const dx = a.body.position.x - b.body.position.x;
     const dy = a.body.position.y - b.body.position.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const sumR = CELESTIALS[a.level].radius + CELESTIALS[b.level].radius;
-    return dist < sumR + 4;
+    return dist < this.r(a.level) + this.r(b.level) + 4;
   }
 }

@@ -42,8 +42,9 @@ export class Game {
     const cx = canvasSize / 2;
     const cy = canvasSize / 2;
     const fr = Math.min(FIELD_RADIUS, canvasSize / 2 - 10);
+    const bodyScale = Math.min(1, fr / FIELD_RADIUS);
 
-    this.world = new PhysicsWorld(fr, cx, cy);
+    this.world = new PhysicsWorld(fr, cx, cy, bodyScale);
     const nextCanvas = document.getElementById('next-canvas') as HTMLCanvasElement;
     this.renderer = new Renderer(this.canvas, nextCanvas, this.world);
 
@@ -116,8 +117,7 @@ export class Game {
   private launch() {
     if (this.gameOver || this.cooldown > 0 || !this.isReadyToLaunch()) return;
     const { fieldRadius: fr, centerX: cx, centerY: cy } = this.world;
-    const def = CELESTIALS[this.nextLevel];
-    const spawnR = fr - def.radius - 6;
+    const spawnR = fr - this.world.r(this.nextLevel) - 6;
     const x = cx + spawnR * Math.cos(this.angle);
     const y = cy + spawnR * Math.sin(this.angle);
 
