@@ -24,7 +24,6 @@ export class Game {
   private mergeScales = new Map<number, number>();
   private pendingMerge: Array<{ bodies: CelestialBody[]; level: number }> = [];
   private lastLaunched: CelestialBody | null = null;
-  private lastLaunchedHasMoved = false;
 
   private scoreEl: HTMLElement;
   private hiScoreEl: HTMLElement;
@@ -103,28 +102,12 @@ export class Game {
 
   private isReadyToLaunch(): boolean {
     if (!this.lastLaunched) return true;
-    const bodies = this.world.getBodies();
-    if (!bodies.includes(this.lastLaunched)) {
+    if (!this.world.getBodies().includes(this.lastLaunched)) {
       this.lastLaunched = null;
-      this.lastLaunchedHasMoved = false;
       return true;
     }
-    const { x, y } = this.lastLaunched.body.position;
-    const vel = this.lastLaunched.body.velocity;
-    const dx = x - this.world.centerX;
-    const dy = y - this.world.centerY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y);
-
-    // 一度でも加速したことを確認してからでないと速度判定しない
-    if (speed > 2.0) this.lastLaunchedHasMoved = true;
-
-    const reachedInner = dist < this.world.fieldRadius * 0.6;
-    const stoppedAfterMoving = this.lastLaunchedHasMoved && speed < 1.0;
-
-    if (reachedInner || stoppedAfterMoving) {
+    if (this.world.hasLanded(this.lastLaunched)) {
       this.lastLaunched = null;
-      this.lastLaunchedHasMoved = false;
       return true;
     }
     return false;
@@ -139,7 +122,6 @@ export class Game {
     const y = cy + spawnR * Math.sin(this.angle);
 
     this.lastLaunched = this.world.addCelestial(x, y, this.nextLevel);
-    this.lastLaunchedHasMoved = false;
     this.audio.playLaunch();
     this.cooldown = COOLDOWN;
     this.nextLevel = this.randomLevel();

@@ -142,6 +142,20 @@ export class PhysicsWorld {
     return clusters;
   }
 
+  hasLanded(cb: CelestialBody): boolean {
+    // コアへの接触チェック
+    const dx = cb.body.position.x - this.centerX;
+    const dy = cb.body.position.y - this.centerY;
+    const distToCore = Math.sqrt(dx * dx + dy * dy);
+    if (distToCore <= this.coreRadius + CELESTIALS[cb.level].radius + 6) return true;
+    // 他の天体への接触チェック
+    for (const other of this.bodies) {
+      if (other === cb) continue;
+      if (this.areTouching(cb, other)) return true;
+    }
+    return false;
+  }
+
   private areTouching(a: CelestialBody, b: CelestialBody): boolean {
     const dx = a.body.position.x - b.body.position.x;
     const dy = a.body.position.y - b.body.position.y;
